@@ -1,65 +1,64 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import {
+    CanvasClient,
+    CANVAS_DRAFT_STATE,
+    CANVAS_PUBLISHED_STATE,
+} from "@uniformdev/canvas";
+import { Composition, Slot } from "@uniformdev/canvas-react";
+import resolveRenderer from "../lib/resolveRenderer";
 
-export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+// LESSON 7 - ACTIVITY 6- START
+import { useLivePreviewNextStaticProps } from "../hooks/useLivePreviewNextStaticProps";
+import getConfig from "next/config";
+// LESSON 7 - ACTIVITY 6 - END
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+export async function getStaticProps({ preview }) {
+    const client = new CanvasClient({
+        apiKey: process.env.UNIFORM_API_KEY,
+        projectId: process.env.UNIFORM_PROJECT_ID,
+    });
+    const { composition } = await client.getCompositionBySlug({
+        slug: "/",
+        state: preview ? CANVAS_DRAFT_STATE : CANVAS_PUBLISHED_STATE,
+    });
+    return {
+        props: {
+            composition,
+        },
+    };
+}
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+// LESSON 7 - ACTIVITY 6 - START
+const { publicRuntimeConfig } = getConfig();
+const { uniform } = publicRuntimeConfig;
+// LESSON 7 - ACTIVITY 6 - END
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
+export default function Home({ composition }) {
+    // LESSON 7 - ACTIVITY 6 - START
+    useLivePreviewNextStaticProps({
+        compositionId: composition?._id,
+        projectId: uniform.projectId,
+    });
+    // LESSON 7 - ACTIVITY 6 - END
+    return (
+        <Composition data={composition} resolveRenderer={resolveRenderer}>
+            <div className={styles.container}>
+                <Head>
+                    <title>{composition.parameters.title?.value}</title>
+                    <link rel="icon" href="/favicon.ico" />
+                </Head>
 
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
+                <main className={styles.main}>
+                    <Slot name="header" />
 
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
+                    <Slot name="body" />
+                </main>
 
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
-    </div>
-  )
+                <footer className={styles.footer}>
+                    <Slot name="footer" />
+                </footer>
+            </div>
+        </Composition>
+    );
 }
