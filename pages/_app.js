@@ -1,6 +1,6 @@
 import "../styles/globals.css";
 import { UniformContext } from "@uniformdev/context-react";
-import { createUniformContext } from "lib/context/uniformContext";
+import { createUniformContext } from "../lib/context/uniformContext";
 
 const clientContext = createUniformContext();
 
